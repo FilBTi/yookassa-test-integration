@@ -7,10 +7,10 @@ import {
   Param,
   Get,
 } from '@nestjs/common';
-import { MerchantService } from './app.service';
-import { PaymentDto } from './dto/payments.dto';
+import { MerchantService } from './merchant.service';
+import { PaymentDto } from './types/dto/payments.dto';
 import { Response } from 'express';
-import { CreateWithdrawal } from './dto/withdrawal.dto';
+import { CreateWithdrawal } from './types/dto/withdrawal.dto';
 
 @Controller()
 export class MerchantController {
@@ -19,8 +19,7 @@ export class MerchantController {
   @Post('/payments')
   async sendPayment(@Body() createPayment: PaymentDto, @Res() res: Response) {
     try {
-      const { confirmation }: any =
-        await this.merchantService.CreatePayment(createPayment);
+      const {confirmation}: any = await this.merchantService.createPayment(createPayment);
       res.status(HttpStatus.OK).redirect(confirmation.confirmation_url);
     } catch {
       res.status(HttpStatus.METHOD_NOT_ALLOWED).send(Error);
@@ -33,7 +32,7 @@ export class MerchantController {
     @Res() res: Response,
   ) {
     try {
-      const result = await this.merchantService.CreatePayout(createWithdrawal);
+      const result = await this.merchantService.createPayout(createWithdrawal);
       res.status(HttpStatus.CREATED).send(result);
     } catch {
       res.status(HttpStatus.BAD_REQUEST).send(Error);
@@ -43,7 +42,7 @@ export class MerchantController {
   @Get('/payments/:id')
   async checkPayStatus(@Param('id') id: string, @Res() res: Response) {
     try {
-      const result = await this.merchantService.CheckPayment(id);
+      const result = await this.merchantService.checkPayment(id);
       res.status(HttpStatus.OK).send(result);
     } catch {
       res.status(HttpStatus.NOT_FOUND).send(Error);
@@ -53,7 +52,7 @@ export class MerchantController {
   @Get('/withdrawal/:id')
   async checkWithdrawalStatus(@Param('id') id: string, @Res() res: Response) {
     try {
-      const result = await this.merchantService.CheckPayout(id);
+      const result = await this.merchantService.checkPayout(id);
       res.status(HttpStatus.OK).send(result);
     } catch {
       res.status(HttpStatus.NOT_FOUND).send(Error);

@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MerchantController } from './app.controller';
-import { MerchantService } from './app.service';
-import { HttpModule } from '@nestjs/axios';
+import { MerchantModule } from './merchant/merchant.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [HttpModule],
-  controllers: [MerchantController],
-  providers: [MerchantService],
+  imports: [MerchantModule, ConfigModule.forRoot({
+    envFilePath: '.env'
+    }
+  )],
 })
 export class AppModule {}
