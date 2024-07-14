@@ -5,7 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [MerchantModule, ConfigModule.forRoot({
     envFilePath: '.env'
-    }
-  )],
+    }),
+    
+  ],
 })
 export class AppModule {}

@@ -19,7 +19,7 @@ export class MerchantController {
   @Post('/payments')
   async sendPayment(@Body() createPayment: PaymentDto, @Res() res: Response) {
     try {
-      const {confirmation}: any = await this.merchantService.createPayment(createPayment);
+      const {confirmation} = await this.merchantService.createPayment(createPayment);
       res.status(HttpStatus.OK).redirect(confirmation.confirmation_url);
     } catch {
       res.status(HttpStatus.METHOD_NOT_ALLOWED).send(Error);

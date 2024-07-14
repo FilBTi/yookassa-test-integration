@@ -12,15 +12,10 @@ export class MerchantService {
   async createRequest(url: string, method: string, data?: Record<string, unknown>) {
     try {
 
-      const headers = {
-        'Idempotence-Key': randomUUID(),
-        'Content-Type': 'application/json',
-      };
-
       const makeRequest = this.httpService.request({
         method,
         url,
-        headers,
+        // headers,
         data,
       });
       return await lastValueFrom(makeRequest);
@@ -30,26 +25,23 @@ export class MerchantService {
   }
 
   async createPayment( { count, currency, type, fullName, number }: Payments) {
-    try {
       const value = count.toFixed(2);
 
-      const phone = `7${number}`;
-
-      const payment_method_data = { type };
+      const amount = {
+        value,
+        currency,
+      };
 
       const requestData = {
-        amount: {
-          value,
-          currency,
-        },
-        payment_method_data,
+        amount,
+        payment_method_data: { type },
         confirmation: {
           type: 'redirect',
           return_url: 'https://www.example.com/return_url'},
         receipt: {
           customer: {
             full_name: fullName,
-            phone
+            phone: `7${number}`
           }
         },
         items: [
@@ -79,7 +71,7 @@ export class MerchantService {
         throw new Error('No data');
       }
       
-      const { id, status, amount, confirmation } = data;
+      const { id, status, confirmation } = data;
 
       return {
         id,
@@ -87,16 +79,12 @@ export class MerchantService {
         amount,
         confirmation,
       };
-    } catch(err) {
-      console.log(err.message);
-    }
   }
   
 
   async checkPayment(orderId: string) {
     try {
-      const req = await this.createRequest(`${process.env.PAYMENTS_CHECK_URL}${orderId}`, 'get');
-      const { data } = req;
+      const { data } = await this.createRequest(`${process.env.PAYMENTS_CHECK_URL}${orderId}`, 'get');
 
       if (!data) {
         throw { message: 'No data' };
@@ -114,23 +102,22 @@ export class MerchantService {
     }
   }
 
-  async createPayout({ count, currency, payout_token, order_id }: Payout) {
+  async createPayout({ count, currency, payoutToken, orderId }: Payout) {
     try {
       const value = count.toFixed(2);
 
       const requestData = {
         amount: { value, currency },
-        payout_token,
-        description: `payout ${order_id}`,
-        metadata: { order_id },
+        payoutToken,
+        description: `payout ${orderId}`,
+        metadata: { orderId },
       };
 
-      const result = await this.createRequest(
+      const { data } = await this.createRequest(
         process.env.PAYOUT_URL,
         'post',
         requestData,
       );
-      const { data } = result;
 
       if (!data) {
         throw Error;
@@ -150,16 +137,15 @@ export class MerchantService {
 
   async checkPayout(orderId: string) {
     try {
-      const req = await this.createRequest(`${process.env.PAYOUT_CHECK_URL}${orderId}`, 'get');
-      const { data } = req;
+      const { data } = await this.createRequest(`${process.env.PAYOUT_CHECK_URL}${orderId}`, 'get');
 
-      const {amount, status ,payout_destination_data} = data;
+      const {amount, status ,payoutDestinationData} = data;
 
       return {
         orderId,
         status,
         amount,
-        payout_destination_data
+        payoutDestinationData
       };
     } catch(err) {
       console.log(err.message)
